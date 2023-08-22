@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-# Verifica se foi fornecido ASN
+# Verifica se foi fornecido modo de uso
 if [ -z "$1" ]; then
         echo "\n\n\n            Utilize \"script-krill.sh -h\" para obter ajuda.\n\n"
         exit 1
@@ -12,69 +12,6 @@ fi
 token=$(cat /etc/krill.conf |grep "token =" | cut -d'"' -s -f 2)
 asn=$2
 as=AS$asn
-krill_path=/etc/krill
-krill_conf=$krill_path/krill.conf
-
-# Funcao verifica_status
-verifica_status() {
-        status_krill=$(netstat -putan | grep krill | cut -d "/" -f 2)
-        if [ $status_krill = "krill" ]; then
-                echo "\n\n\n\n          :D              \o/\n\n\n       -> Servico Krill UP!\n\n"
-                exit 0
-        else
-                echo "\n\n\n\n          :0              ;(\n\n\n        -> Servico do Krill nao esta escutando...\n\n\n"
-                echo "$status_krill"
-                sleep 4
-                systemctl status krill
-        fi
-}
-
-
-# Funcao child_request
-child_request() {
-        echo "  -> Acesse o Registro.br > Titularidade > ASN > RPKI > Configurar RPKI.\n\n      -> Copie o conteúdo abaixo e cole no campo do registro.br chamado 'Child request'\n\n"
-        krillc parents request --server https://localhost:3000/ --token $token --ca $as
-        echo "\n\n\n"
-        sleep 6
-
-        # Aguarda finalizar passo anterior
-        echo "          Pressione [ENTER] quando inserir a Child Request no registro.br e mantenha ele aberto.\n\n\n\n\n"
-        read ler
-
-        # Salvar Parent Response
-        echo "\n\n\n            Crie um arquivo .xml e adicione o conteudo do Parent Response fornecido pelo registro.br.\n\n"
-        sleep 6
-        
-        # Publisher Request
-        echo ' -> No registro.br, copie o conteúdo abaixo, cole no campo aberto ao clicar em ">>Configurar publicacao remota" e clique em "HABILITAR PUBLICACAO REMOTA"\n\n'
-        krillc repo request --server https://localhost:3000/ --token $token --ca $as
-        echo "\n\n\n"
-        sleep 6
-
-        # Aguarda finalizar passo anterior
-        echo "          Pressione [ENTER] quando inserir a Publisher Request no Registro.br e mantenha ele aberto.\n\n\n\n\n"
-        read ler2
-
-        # Repository  Response
-        echo '\n\n\n            Crie um arquivo .xml e adicione o conteudo da "Repository Response" fornecida pelo registro.br'
-
-        # Instruções para o segundo uso
-        echo "\n\n\n           Execute novamente o script fornecendo no modo '--parent-response' fornecendo o ASN como segundo argumento. Como Terceiro argumento informe o Path para o arquivo criado com a Repository Response e depois no modo --repository-response fornecendo tambem ASN e agora o arquivo XML com a Parent Response.\n\n              Ex.:\n          $(whoami)@rpki:~# sh script-krill.sh --parent-response 61598 $HOME/parent-response.xml"
-}
-
-
-# Funcao para adicionar o Repository Response
-repository_response() {
-        repository_response_file=$3
-        krillc repo configure --response $repository_response_file --server https://localhost:3000/ --token $token --ca $as
-}
-
-
-# Funcao que adiciona o Parent Response
-parent_response() {
-        parent_response_file=$3
-        krillc parents add --response $parent_response_file --parent nicbr_ca --server https://localhost:3000/ --token $token --ca $as
-}
 
 
 # Funcao instalar
@@ -97,35 +34,75 @@ instalar() {
 }
 
 
-# # [!perigo!] Funcao remover tudo (purgar) do Krill. Arquivos, path, etc.
-purgar() {
-        systemctl stop krill
-        systemctl stop krill.service
-        systemctl disable krill
-        systemctl disable krill.service
-        rm -rf $krill_path
-        rm -rf /usr/bin/*krill*
-        rm /etc/systemd/system/krill*
-        systemctl daemon-reload
-}
-
-
 # Funcao cria_ca
 cria_ca() {
         krillc add --server https://localhost:3000/ --token $token --ca $as
 }
 
 
-# Sugere ROAs
-sug_roa() {
-        krillc roas bgp suggest --ca $as --token $token
+# Funcao child_request
+child_request() {
+        echo "  -> Acesse o Registro.br > Titularidade > ASN > RPKI > Configurar RPKI.\n\n      -> Copie o conteúdo abaixo e cole no campo do registro.br chamado 'Child request'\n\n"
+        krillc parents request --server https://localhost:3000/ --token $token --ca $as
+        echo "\n\n\n"
+        sleep 6
+
+        # Aguarda finalizar passo anterior
+        echo "          Pressione [ENTER] quando inserir a Child Request no registro.br e mantenha ele aberto.\n\n\n\n\n"
+        read ler
+
+        # Salvar Parent Response
+        echo "\n\n\n            Crie um arquivo .xml e adicione o conteudo do Parent Response fornecido pelo registro.br.\n\n"
+        sleep 6
+
+        echo "          Pressione [ENTER] quando salvar o arquivo com o Parent Response. Mantenha o registro.br aberto.\n\n\n\n\n"
+        read ler2
+
+        # Publisher Request
+        echo ' -> No registro.br, copie o conteúdo abaixo, cole no campo aberto ao clicar em ">>Configurar publicacao remota" e clique em "HABILITAR PUBLICACAO REMOTA"\n\n'
+        krillc repo request --server https://localhost:3000/ --token $token --ca $as
+        echo "\n\n\n"
+        sleep 6
+
+        # Aguarda finalizar passo anterior
+        echo "          Pressione [ENTER] quando inserir a Publisher Request no Registro.br e mantenha ele aberto.\n\n\n\n\n"
+        read ler3
+
+        # Repository  Response
+        echo '\n\n\n            Crie um arquivo .xml e adicione o conteudo da "Repository Response" fornecida pelo registro.br'
+
+        # Instruções para o segundo uso
+        echo "\n\n\n           Execute novamente o script no modo '--repository-response' fornecendo o ASN como segundo argumento e o path para o arquivo XML com a Repository Response como segundo argumento.  Em seguida, use o modo --parent-response fornecendo tambem ASN e path do arquivo XML com a Parent Response.\n\n              Ex.:\n          $(whoami)@rpki:~# sh script-krill.sh --parent-response 61598 $HOME/parent-response.xml\n          $(whoami)@rpki:~# sh script-krill.sh --repository-response 61598 $HOME/repository-response.xml"
 }
 
 
-# Cria ROAs Sugeridos
-#cria_sug_roa() {
+# Funcao para adicionar o Repository Response
+repository_response() {
+        repository_response_file=$3
+        krillc repo configure --response $repository_response_file --server https://localhost:3000/ --token $token --ca $as
+}
 
-#}
+
+# Funcao que adiciona o Parent Response
+parent_response() {
+        parent_response_file=$3
+        krillc parents add --response $parent_response_file --parent nicbr_ca --server https://localhost:3000/ --token $token --ca $as
+}
+
+
+# Verificar se servico esta escutando
+verifica_status() {
+        status_krill=$(netstat -putan | grep krill | cut -d "/" -f 2)
+        if [ $status_krill = "krill" ]; then
+                echo "\n\n\n\n          :D              \o/\n\n\n       -> Servico Krill UP!\n\n"
+                exit 0
+        else
+                echo "\n\n\n\n          :0              ;(\n\n\n        -> Servico do Krill nao esta escutando...\n\n\n"
+                echo "$status_krill"
+                sleep 4
+                systemctl status krill
+        fi
+}
 
 
 # Adiciona uma entrada ROA
@@ -139,6 +116,17 @@ add_roa() {
 remove_roa() {
         arg_roa=$3
         krillc roas update --remove "$arg_roa" --ca $as --token $token
+}
+
+
+# Sugere ROAs
+sug_roa() {
+        krillc roas bgp suggest --ca $as --token $token
+}
+
+
+# Cria ROAs Sugeridos
+cria_sug_roa() {
 
 }
 
@@ -150,18 +138,21 @@ publica_roas() {
 }
 
 
+# # [!perigo!] Funcao remover tudo (purgar) do Krill. Arquivos, path, etc.
+purgar() {
+        systemctl stop krill
+        systemctl stop krill.service
+        systemctl disable krill
+        systemctl disable krill.service
+        rm -rf $krill_path
+        rm -rf /usr/bin/*krill*
+        rm /etc/systemd/system/krill*
+        systemctl daemon-reload
+}
+
+
 # Define os parametros do script
 case $1 in
-        -t)
-        echo "$token"
-        exit 0
-        ;;
-
-        --token)
-        echo "$token"
-        exit 0
-        ;;
-
         -h)
         echo "\nModo de utilizacao\n"
         echo "script-krill.sh [MODO] [ARGUMENTO]\n"
@@ -169,6 +160,7 @@ case $1 in
         echo "-c,       --criar-ca,             Cria a CA do AS. Segundo argumento deve ser o ASN. Ex.: $(whoami)@rpki:~# sh script-krill.sh --criar-ca 61598"
         echo "-r,       --child-request,        Gera o Child Request para inserir no registro.br. Segundo argumento deve ser o numero ASN. Ex.: $(whoami)@rpki:~# sh script-krill.sh --child-request 61598"
         echo "-p,       --parent-response,      Adiciona o Parent Response gerado no Registro.br após inserir a Child Request. Recebe como segundo argumento o ASN e terceiro argumento o Path do arquivo XML com o Parent Response como conteúdo. Ex.: $(whoami)@rpki:~# sh script-krill.sh --parent-response 61598 /tmp/response.xml\n"
+        echo "-p,       --repository-response,  Adiciona o Repository Response gerado no Registro.br após inserir a Child Request. Recebe como segundo argumento o ASN e terceiro argumento o Path do arquivo XML com o Repository Response como conteúdo. Ex.: $(whoami)@rpki:~# sh script-krill.sh --repository-response 61598 /tmp/repo-response.xml\n"
         echo "-a,       --add-roa,              Adiciona ROA informado como terceiro argumento. Segundo argumento deve ser o numero do ASN. Ex.: $(whoami)@rpki:~# sh script-krill.sh --add-roa \"192.168.0.0/16 => 61598\""
         echo "-r,       --remove-roa,           Remove ROA informado como terceiro argumento. Segundo argumento deve ser o numero do ASN. Ex.: $(whoami)@rpki:~# sh script-krill.sh --remove-roa \"2a04:b900::/29 => 61598\""
         echo "-s,       --sugere-roas,          Sugere as ROAs para o ASN. Segundo argumento deve ser o número do ASN."
@@ -182,6 +174,16 @@ case $1 in
         exit 0
         ;;
 
+        -t)
+        echo "$token"
+        exit 0
+        ;;
+
+        --token)
+        echo "$token"
+        exit 0
+        ;;
+        
         -i)
         instalar
         exit 0
