@@ -131,8 +131,8 @@ sug_roa() {
 #}
 
 
-# Publica as ROAs
-publica_roas() {
+# Cria ROAs baseado em arquivo
+file_roas() {
         file_roas=$3
         krillc roas update --server https://localhost:3000/ --token $token --ca $as --delta $file_roas
 }
@@ -165,7 +165,7 @@ case $1 in
         echo "-r,       --remove-roa,           Remove ROA informado como terceiro argumento. Segundo argumento deve ser o numero do ASN. Ex.: $(whoami)@rpki:~# sh script-krill.sh --remove-roa \"2a04:b900::/29 => 61598\""
         echo "-s,       --sugere-roas,          Sugere as ROAs para o ASN. Segundo argumento deve ser o número do ASN."
         echo "-o,       --add-sugestoes,        Cria ROAs baseado na sugestao. Segundo argumento deve ser o número do ASN."
-        echo "-b,       --publica-roas,         Publica ROAs. Segundo argumento deve ser o número do ASN. Terceiro argumento deve ser Path do arquivo com os ROAs"
+        echo "-b,       --arquivo-roas,         Cria ROAS baseado em arquivo."
         echo "-t,       --token,                Exibe o admin_token do Krill"
         echo "-u        --status,               Verifica se o servico do Krill está escutando"
         echo "-d,       --purge,                Purga (deleta) todos diretorios, arquivos, links simbolicos e servicos do Krill"
@@ -270,12 +270,12 @@ case $1 in
         ;;
 
         -b)
-        publica_roas
+        file_roas
         exit 0
         ;;
 
-        --publica-roas)
-        publica_roas
+        --arquivo-roas)
+        file_roas
         exit 0
         ;;
 
