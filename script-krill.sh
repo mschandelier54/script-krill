@@ -128,7 +128,7 @@ sug_roa() {
 # Cria ROAs Sugeridos
 cria_sug_roas() {
         for roa in $(cat /root/roas.txt); do
-                krillc roas update --add '$roa # Criado baseado nas sugestões do Krill' --token $token --ca $as
+                krillc roas update --add "$roa # Criado baseado nas sugestões do Krill" --token $token --ca $as
         done
 }
 
