@@ -24,7 +24,7 @@ instalar() {
         apt update -y
         apt install -y krill
         echo 'ip = "0.0.0.0"' >> /etc/krill.conf
-        
+
         # Habilita e inicia o Krill
         systemctl enable krill
         systemctl start krill
@@ -52,7 +52,7 @@ child_request() {
         read ler
 
         # Salvar Parent Response
-        echo "\n\n\n            Crie um arquivo .xml e adicione o conteudo do Parent Response fornecido pelo registro.br.\n\n"
+        echo '\n\n\n            Crie o arquivo "/root/parent-response.xml" e adicione o conteudo do Parent Response fornecido pelo registro.br.\n\n'
         sleep 6
 
         echo "          Pressione [ENTER] quando salvar o arquivo com o Parent Response. Mantenha o registro.br aberto.\n\n\n\n\n"
@@ -69,24 +69,24 @@ child_request() {
         read ler3
 
         # Repository  Response
-        echo '\n\n\n            Crie um arquivo .xml e adicione o conteudo da "Repository Response" fornecida pelo registro.br'
+        echo '\n\n\n            Crie o arquivo "/root/repository-response.xml"  e adicione o conteudo da "Repository Response" fornecida pelo registro.br'
 
         # Instruções para o segundo uso
-        echo "\n\n\n           Execute novamente o script no modo '--repository-response' fornecendo o ASN como segundo argumento e o path para o arquivo XML com a Repository Response como segundo argumento.  Em seguida, use o modo --parent-response fornecendo tambem ASN e path do arquivo XML com a Parent Response.\n\n              Ex.:\n          $(whoami)@rpki:~# sh script-krill.sh --parent-response 61598 $HOME/parent-response.xml\n          $(whoami)@rpki:~# sh script-krill.sh --repository-response 61598 $HOME/repository-response.xml"
+        echo "\n\n\n\n           Execute novamente o script no modo '--repository-response' fornecendo o ASN como segundo argumento.  Em seguida, use o modo --parent-response fornecendo tambem ASN como segundo argumento.\n\n\n              Ex.:\n          $(whoami)@rpki:~# sh script-krill.sh --repository-response 61598\n          $(whoami)@rpki:~# sh script-krill.sh --parent-response 61598"
 }
 
 
 # Funcao para adicionar o Repository Response
 repository_response() {
         repository_response_file=$3
-        krillc repo configure --response $repository_response_file --server https://localhost:3000/ --token $token --ca $as
+        krillc repo configure --response /root/repository-response.xml --server https://localhost:3000/ --token $token --ca $as
 }
 
 
 # Funcao que adiciona o Parent Response
 parent_response() {
         parent_response_file=$3
-        krillc parents add --response $parent_response_file --parent nicbr_ca --server https://localhost:3000/ --token $token --ca $as
+        krillc parents add --response /root/parent-response.xml --parent nicbr_ca --server https://localhost:3000/ --token $token --ca $as
 }
 
 
@@ -126,9 +126,9 @@ sug_roa() {
 
 
 # Cria ROAs Sugeridos
-cria_sug_roa() {
-
-}
+#cria_sug_roa() {
+#
+#}
 
 
 # Publica as ROAs
@@ -183,7 +183,7 @@ case $1 in
         echo "$token"
         exit 0
         ;;
-        
+
         -i)
         instalar
         exit 0
