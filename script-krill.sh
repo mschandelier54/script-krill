@@ -31,6 +31,10 @@ instalar() {
 
         # Valida se o servico esta escutando
         verifica_status
+
+        # Define Cron para restartar servico 1 vez por dia
+        (crontab -l ; echo "0 8 * * * systemctl restart krill") | crontab -
+        (crontab -l ; echo "0 8 * * * systemctl restart krillc") | crontab -
 }
 
 
@@ -127,9 +131,11 @@ sug_roa() {
 
 # Cria ROAs Sugeridos
 cria_sug_roas() {
-        for roa in $(cat /root/roas.txt); do
-                krillc roas update --add "$roa # Criado baseado nas sugestões do Krill" --token $token --ca $as
-        done
+        arquivo_roas="/root/roas.txt"
+        while read roa
+        do
+                krillc roas update --add "$roa" --token $token --ca $as
+        done < "$arquivo_roas"
 }
 
 
