@@ -9,10 +9,9 @@ fi
 
 
 # Define variavel token e asn
-#token=$(cat /etc/krill.conf |grep "token =" | cut -d'"' -s -f 2)
+token=$(cat /etc/krill.conf |grep "token =" | cut -d'"' -s -f 2)
 asn=$2
 as=AS$asn
-token=$(echo -n "clvc"$as"1913" | md5sum | cut -d " " -f1)
 krill_path=/etc/krill
 krill_conf=$krill_path/krill.conf
 
@@ -80,31 +79,18 @@ parent_response() {
 
 # Funcao instalar
 instalar() {
-        # Instala pacotes necessarios
-        apt install -y build-essential git curl libssl-dev openssl pkg-config
-        curl https://sh.rustup.rs -sSf | sh
-        source $HOME/.cargo/env
-        mkdir $krill_path ; cd $krill_path
-        git clone https://github.com/NLnetLabs/krill.git
-        cd $krill_path/krill ; cargo build --release
-        ln -s $krill_path/krill/target/release/krill /usr/bin; ln -s $krill_path/krill/target/release/krillc /usr/bin
-        cd $krill_path ; cp $krill_path/krill/defaults/krill.conf $krill_conf
-        mkdir $krill_path/data
-        echo 'auth_token = "$token"' >> $krill_conf ; echo 'admin_token = "$token"' >> $krill_conf
-        echo 'ip = "0.0.0.0"' >> $krill_conf
-        krill -c .$krill_conf
-
-
-
         # Adiciona repositorio de pacotes da NLnet Labs, importa chave do repositorio e instala Krill
-#        echo 'deb [arch=amd64] https://packages.nlnetlabs.nl/linux/debian/ bullseye main' >  /etc/apt/sources.list.d/nlnetlabs.list
-#        wget -qO- https://packages.nlnetlabs.nl/aptkey.asc | apt-key add -
-#        apt update -y
-#        apt install -y krill krill-sync krillup krillta
-
+        apt update -y
+        apt install ca-certificates curl gnupg lsb-release wget curl -y
+        curl -fsSL https://packages.nlnetlabs.nl/aptkey.asc | gpg --dearmor -o /usr/share/keyrings/nlnetlabs-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/nlnetlabs-archive-keyring.gpg] https://packages.nlnetlabs.nl/linux/debian $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/nlnetlabs.list > /dev/null
+        apt update -y
+        apt install -y krill
+        echo 'ip = "0.0.0.0"' >> /etc/krill.conf
+        
         # Habilita e inicia o Krill
-#        systemctl enable krill
-#        systemctl start krill
+        systemctl enable krill
+        systemctl start krill
 
         # Valida se o servico esta escutando
         verifica_status
