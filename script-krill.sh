@@ -34,24 +34,47 @@ verifica_status() {
 # Funcao child_request
 child_request() {
         echo "  -> Acesse o Registro.br > Titularidade > ASN > RPKI > Configurar RPKI.\n\n      -> Copie o conteúdo abaixo e cole no campo do registro.br chamado 'Child request'\n\n"
-        krillc parents request --token $token --ca $as
+        krillc parents request --server https://localhost:3000/ --token $token --ca $as
         echo "\n\n\n"
         sleep 6
 
         # Aguarda finalizar passo anterior
-        echo "          Pressione [ENTER] quando inserir a Child Request no Registro.br e mantenha ele aberto.\n\n\n\n\n"
+        echo "          Pressione [ENTER] quando inserir a Child Request no registro.br e mantenha ele aberto.\n\n\n\n\n"
         read ler
 
+        # Salvar Parent Response
+        echo "\n\n\n            Crie um arquivo .xml e adicione o conteudo do Parent Response fornecido pelo registro.br.\n\n"
+        sleep 6
+        
+        # Publisher Request
+        echo ' -> No registro.br, copie o conteúdo abaixo, cole no campo aberto ao clicar em ">>Configurar publicacao remota" e clique em "HABILITAR PUBLICACAO REMOTA"\n\n'
+        krillc repo request --server https://localhost:3000/ --token $token --ca $as
+        echo "\n\n\n"
+        sleep 6
+
+        # Aguarda finalizar passo anterior
+        echo "          Pressione [ENTER] quando inserir a Publisher Request no Registro.br e mantenha ele aberto.\n\n\n\n\n"
+        read ler2
+
+        # Repository  Response
+        echo '\n\n\n            Crie um arquivo .xml e adicione o conteudo da "Repository Response" fornecida pelo registro.br'
 
         # Instruções para o segundo uso
-        echo "\n\n\n            Crie um arquivo e adicione o conteúdo do Parent Response fornecido pelo Registro.br.\n          Execute novamente o script fornecendo no modo '--parent-response' fornecendo o ASN como segundo argumento. Como Terceiro argumento informe o Path para um arquivo criado cujo conteudo seja o Parent Response gerado no Registro.br ao inserir a Child Request.\n\n              Ex.:\n          $(whoami)@rpki:~# sh script-krill.sh --parent-response 61598 $HOME/parent-response.xml\n\n"
+        echo "\n\n\n           Execute novamente o script fornecendo no modo '--parent-response' fornecendo o ASN como segundo argumento. Como Terceiro argumento informe o Path para o arquivo criado com a Repository Response e depois no modo --repository-response fornecendo tambem ASN e agora o arquivo XML com a Parent Response.\n\n              Ex.:\n          $(whoami)@rpki:~# sh script-krill.sh --parent-response 61598 $HOME/parent-response.xml"
 }
 
 
-# Funcao que adiciona o Parent Response (necessario fornecer arquivo XML com o Parent Response)
+# Funcao para adicionar o Repository Response
+repository_response() {
+        repository_response_file=$3
+        krillc repo configure --response $repository_response_file --server https://localhost:3000/ --token $token --ca $as
+}
+
+
+# Funcao que adiciona o Parent Response
 parent_response() {
         parent_response_file=$3
-        krillc parents add --parent nicbr_ca --response $parent_response --token $token --ca $as --rfc8183
+        krillc parents add --response $parent_response_file --parent nicbr_ca --server https://localhost:3000/ --token $token --ca $as
 }
 
 
@@ -210,6 +233,11 @@ case $1 in
 
         --parent-response)
         parent_response
+        exit 0
+        ;;
+
+        --repository-response)
+        repository_response
         exit 0
         ;;
 
