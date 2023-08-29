@@ -184,7 +184,7 @@ help_menu() {
         echo "-t,       --token,                Exibe o admin_token do Krill"
         echo "-u        --status,               Verifica se o servico do Krill está escutando"
         echo "-h,       --help,                 Mostra esse menu de ajuda"
-        echo "\nPara configurar um RPKI do zero, deve-se: criar a CA, gerar a Child Request, inserir ela no registro.br, salvar o Parent Response e inserir no Krill e criar os ROAS.\n\nPortanto, em uma primeira configuração utilize os módulos um de cada vez nessa ordem: -i, -c, -r, -p e depois criar as ROAS manualmente ou automaticamente com -o.\n\n"
+        echo "\nPara configurar um RPKI do zero, deve-se: criar a CA, gerar a Child Request, inserir ela no registro.br, salvar o Repository e Parent Response e inserir no Krill e criar os ROAS.\n\nPortanto, em uma primeira configuração utilize os módulos um de cada vez nessa ordem: -i, -c, -r, -y, -p e depois criar as ROAS manualmente ou automaticamente com -s seguido de -o.\n\n"
 }
 
 
