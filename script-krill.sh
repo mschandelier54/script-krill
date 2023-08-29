@@ -18,7 +18,7 @@ as=AS$asn
 instalar() {
         # Adiciona repositorio de pacotes da NLnet Labs, importa chave do repositorio e instala Krill
         apt update -y
-        apt install ca-certificates curl gnupg lsb-release wget curl -y
+        apt install ca-certificates curl gnupg lsb-release wget curl net-tools -y
         curl -fsSL https://packages.nlnetlabs.nl/aptkey.asc | gpg --dearmor -o /usr/share/keyrings/nlnetlabs-archive-keyring.gpg
         echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/nlnetlabs-archive-keyring.gpg] https://packages.nlnetlabs.nl/linux/debian $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/nlnetlabs.list > /dev/null
         apt update -y
@@ -30,7 +30,7 @@ instalar() {
         systemctl start krill
 
         # Valida se o servico esta escutando
-        verifica_status
+        #verifica_status
 
         # Define Cron para restartar servico 1 vez por dia
         (crontab -l ; echo "0 8 * * * systemctl restart krill") | crontab -
