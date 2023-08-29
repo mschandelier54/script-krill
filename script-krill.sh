@@ -27,10 +27,12 @@ instalar() {
 
         # Habilita e inicia o Krill
         systemctl enable krill
+        sleep 1
         systemctl start krill
+        sleep 3
 
         # Valida se o servico esta escutando
-        #verifica_status
+        verifica_status
 
         # Define Cron para restartar servico 1 vez por dia
         (crontab -l ; echo "0 8 * * * systemctl restart krill") | crontab -
