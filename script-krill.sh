@@ -39,7 +39,7 @@ instalar() {
 
 
 # Funcao cria_ca
-cria_ca() {
+criar_ca() {
         krillc add --server https://localhost:3000/ --token $token --ca $as
 }
 
@@ -208,7 +208,7 @@ case $1 in
         ;;
 
         --criar-ca)
-        cria_ca
+        criar_ca
         exit 0
         ;;
 
